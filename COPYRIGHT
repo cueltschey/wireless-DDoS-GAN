@@ -1,0 +1,5 @@
+The following files are used with wl-stream:
+
+Files:     external/CLI/CLI11.hpp
+Copyright: 2017-2023 University of Cincinnati, developed by Henry Schreiner
+License:   BSD-3-clause
