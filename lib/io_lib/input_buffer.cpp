@@ -39,7 +39,7 @@ std::optional<std::vector<uint8_t>> input_buffer::read_frame() {
         return std::nullopt; // End of video
     }
     // Convert frame to raw bytes
-    buffer.assign(frame.data, frame.data + frame.total() * frame.elemSize());
+    cv::imencode(".jpg", frame, buffer);
     return buffer;
   }
   case ALPHANUMERIC_FILE: {
