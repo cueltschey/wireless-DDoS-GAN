@@ -12,45 +12,66 @@ ImageClassifier::ImageClassifier(const std::string& model_path, int img_width, i
 
 // Preprocess a frame for inference
 torch::Tensor ImageClassifier::preprocess(std::vector<uint8_t>& frame) {
+    cv::Mat image;
 
-    auto tensor = torch::from_blob(frame.data(), {1, img_height_, img_width_, 3}, torch::kUInt8)
-                      .permute({0, 3, 1, 2})
+    // Try to decode the image
+    image = cv::imdecode(frame, cv::IMREAD_COLOR);
+
+    // If decoding fails, create an image from the raw buffer
+    if (image.empty()) {
+        int required_size = img_height_ * img_width_ * 3;
+        if (frame.size() < required_size) {
+            throw std::runtime_error("Insufficient bytes for raw image creation");
+        }
+
+        // Create a CV_8UC3 Mat from the buffer
+        image = cv::Mat(img_height_, img_width_, CV_8UC3, frame.data()).clone();
+    } else {
+        // Resize the decoded image to the target size
+        cv::resize(image, image, cv::Size(img_width_, img_height_));
+    }
+
+    // Convert the OpenCV Mat to a PyTorch Tensor
+    auto tensor = torch::from_blob(image.data, {1, img_height_, img_width_, 3}, torch::kUInt8)
+                      .permute({0, 3, 1, 2}) // Convert from HWC to CHW
                       .to(torch::kFloat32)
-                      .div_(255.0);
+                      .div_(255.0);         // Normalize to [0, 1]
+
+    // NOTE: to display images
+    // cv::imshow("Recv", image);
+    // cv::waitKey(0);
+    // cv::destroyWindow("Recv");
 
     return tensor;
 }
 
 // Train the model
-void ImageClassifier::train(std::vector<std::pair<std::vector<uint8_t>, int>>& dataset, int epochs, double lr) {
+void ImageClassifier::train(std::vector<std::pair<std::vector<uint8_t>, int>>& dataset, double lr) {
     torch::Device device(torch::cuda::is_available() ? torch::kCUDA : torch::kCPU);
     model_->to(device);
-
     torch::optim::SGD optimizer(model_->parameters(), lr);
-    for (int epoch = 0; epoch < epochs; ++epoch) {
-        model_->train();
-        double total_loss = 0.0;
 
-        for (auto& [frame, label] : dataset) {
-            auto input_tensor = preprocess(frame).to(device);
-            size_t expected_size = img_width_ * img_height_ * 3;
-            if (frame.size() < expected_size) {
-              std::cout << "Frame size too small." << std::endl;
-              continue;
-            }
-            auto label_tensor = torch::tensor({label}, torch::kInt64).to(device);
+    model_->train();
+    double total_loss = 0.0;
 
-            optimizer.zero_grad();
-            auto output = model_->forward(input_tensor);
-            auto loss = torch::nll_loss(output, label_tensor);
-            total_loss += loss.item<double>();
-
-            loss.backward();
-            optimizer.step();
+    for (auto& [frame, label] : dataset) {
+        auto input_tensor = preprocess(frame).to(device);
+        size_t expected_size = img_width_ * img_height_ * 3;
+        if (frame.size() < expected_size) {
+          continue; // skip if frame too small
         }
+        auto label_tensor = torch::tensor({label}, torch::kInt64).to(device);
 
-        std::cout << "Epoch [" << epoch + 1 << "/" << epochs << "], Loss: " << total_loss << std::endl;
+        optimizer.zero_grad();
+        auto output = model_->forward(input_tensor);
+        auto loss = torch::nll_loss(output, label_tensor);
+        total_loss += loss.item<double>();
+
+        loss.backward();
+        optimizer.step();
     }
+
+    std::cout << "Loss: " << total_loss << std::endl;
 }
 
 // Classify a single frame

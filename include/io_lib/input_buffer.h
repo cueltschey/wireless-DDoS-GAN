@@ -8,6 +8,8 @@
 
 namespace io_lib {
 
+std::vector<uint8_t> generate_random_buffer(size_t size);
+
 typedef enum {
   STDIN,
   VIDEO_FILE,

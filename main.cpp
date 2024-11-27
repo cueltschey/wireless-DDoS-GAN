@@ -4,6 +4,7 @@
 #include <cstring>
 #include <fstream>
 #include <optional>
+#include <random>
 #include "io_lib/input_buffer.h"
 #include "io_lib/ip_manager.h"
 #include "io_lib/image_classifier.h"
@@ -58,31 +59,53 @@ int main(int argc, char** argv) {
 
 
   if(ip_params.is_server){
+    ImageClassifier  classifier;
     std::vector<std::pair<std::vector<uint8_t>, int>> dataset;
+    int frame_index = 0;
     while (true) {
+      frame_index++;
       std::optional<std::vector<uint8_t>> frame = ip_mgr.recv();
       if(!frame.has_value())
         break;
       std::vector<uint8_t> frame_buffer = frame.value();
-      //int label = static_cast<int>(frame_buffer.front());
-      //frame_buffer.erase(frame_buffer.begin());
-      int label = 0;
+      int label = static_cast<int>(frame_buffer.front());
+      frame_buffer.erase(frame_buffer.begin());
+      if (label > 1) {
+        std::cout << "Invalid Label: " << label << std::endl;
+        label = 0;
+      }
       dataset.push_back(std::pair<std::vector<uint8_t>, int>(frame_buffer, label));
+      if (frame_index % 100 == 0) {
+        std::cout << "Epoch: " << frame_index / 100 << std::endl;
+        classifier.train(dataset);
+        dataset.clear();
+      }
     }
 
-    std::cout << "Training model..." << std::endl;
-    ImageClassifier  classifier;
-    classifier.train(dataset);
     classifier.save_model(output_filename);
     return 0;
   }
 
+  std::random_device rd;
+  std::mt19937 gen(rd());
+  std::uniform_int_distribution<int> binary_dist(0, 1);
+
   while (true) {
-    std::optional<std::vector<uint8_t>> opt_frame = input.read_frame();
-    if(!opt_frame.has_value()){
-      break;
+
+    std::vector<uint8_t> frame;
+    int prefix = binary_dist(gen);
+    if (prefix == 0) {
+      std::cout << "Sending random buffer" << std::endl;
+      frame = io_lib::generate_random_buffer(200000); // Example size: 10 bytes
+    } else {
+      std::optional<std::vector<uint8_t>> opt_frame = input.read_frame();
+      if(!opt_frame.has_value()){
+        break;
+      }
+      frame = opt_frame.value();
+      std::cout << "Sending image data: " << frame.size() << std::endl;
     }
-    std::vector<uint8_t> frame = opt_frame.value();
+    frame.insert(frame.begin(), prefix);
 
     ip_mgr.send(frame);
   }

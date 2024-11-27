@@ -1,6 +1,17 @@
 #include "io_lib/input_buffer.h"
+#include <random>
 
 namespace io_lib {
+
+std::vector<uint8_t> generate_random_buffer(size_t size) {
+  std::vector<uint8_t> buffer(size);
+  std::random_device rd;
+  std::mt19937 gen(rd());
+  std::uniform_int_distribution<uint8_t> dis(0, 255);
+
+  std::generate(buffer.begin(), buffer.end(), [&]() { return dis(gen); });
+  return buffer;
+}
 
 input_buffer::input_buffer(const input_buffer_params& p): params(p) {
   switch (params.itype) {
