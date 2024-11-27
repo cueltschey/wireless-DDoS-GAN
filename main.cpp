@@ -6,6 +6,7 @@
 #include <optional>
 #include "io_lib/input_buffer.h"
 #include "io_lib/ip_manager.h"
+#include "io_lib/image_classifier.h"
 
 
 int main(int argc, char** argv) {
@@ -54,48 +55,25 @@ int main(int argc, char** argv) {
   // NOTE: ip manager sends and receives IP traffic
   io_lib::ip_manager ip_mgr(ip_params);
 
-  bool video_initialized = false;
-  cv::VideoWriter video_writer;
-  double fps = 30.0;
 
 
   if(ip_params.is_server){
-    std::ofstream file(output_filename, std::ios::binary);
+    std::vector<std::pair<std::vector<uint8_t>, int>> dataset;
     while (true) {
       std::optional<std::vector<uint8_t>> frame = ip_mgr.recv();
       if(!frame.has_value())
         break;
-
-      cv::Mat img = cv::imdecode(frame.value(), cv::IMREAD_COLOR);
-      if (img.empty()) {
-        std::cerr << "Error: Failed to decode frame." << std::endl;
-        continue;
-      }
-      cv::imshow("Received Video", img);
-      if (cv::waitKey(1) == 'q') {
-            break;
-      }
-
-
-      if (!video_initialized) {
-            video_writer.open(output_filename,
-                              cv::VideoWriter::fourcc('m', 'p', '4', 'v'), // MPEG-4 codec
-                              fps,
-                              cv::Size(img.cols, img.rows),
-                              true);
-
-            if (!video_writer.isOpened()) {
-                std::cerr << "Error: Could not open video file for writing." << std::endl;
-                return 1;
-            }
-
-            video_initialized = true;
-        }
-
-        // Write the frame to the video file
-        video_writer.write(img);
+      std::vector<uint8_t> frame_buffer = frame.value();
+      //int label = static_cast<int>(frame_buffer.front());
+      //frame_buffer.erase(frame_buffer.begin());
+      int label = 0;
+      dataset.push_back(std::pair<std::vector<uint8_t>, int>(frame_buffer, label));
     }
-    file.close();
+
+    std::cout << "Training model..." << std::endl;
+    ImageClassifier  classifier;
+    classifier.train(dataset);
+    classifier.save_model(output_filename);
     return 0;
   }
 

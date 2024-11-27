@@ -1,5 +1,11 @@
 cmake_minimum_required(VERSION 3.11)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
+
 project(wl-stream)
+set(TORCH_CXX_FLAGS "-D_GLIBCXX_USE_CXX11_ABI=0")
+
 
 # Dependencies
 find_package( OpenCV REQUIRED )
@@ -8,6 +14,8 @@ add_subdirectory(external/CLI11)
 
 # Find Boost
 find_package(Boost REQUIRED COMPONENTS system)
+list(APPEND CMAKE_PREFIX_PATH "libtorch")
+find_package(Torch REQUIRED)
 
 
 # Check if Boost.Asio is available
