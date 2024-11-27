@@ -60,10 +60,7 @@ int main(int argc, char** argv) {
 
   if(ip_params.is_server){
     ImageClassifier  classifier;
-    std::vector<std::pair<std::vector<uint8_t>, int>> dataset;
-    int frame_index = 0;
     while (true) {
-      frame_index++;
       std::optional<std::vector<uint8_t>> frame = ip_mgr.recv();
       if(!frame.has_value())
         break;
@@ -74,12 +71,9 @@ int main(int argc, char** argv) {
         std::cout << "Invalid Label: " << label << std::endl;
         label = 0;
       }
-      dataset.push_back(std::pair<std::vector<uint8_t>, int>(frame_buffer, label));
-      if (frame_index % 100 == 0) {
-        std::cout << "Epoch: " << frame_index / 100 << std::endl;
-        classifier.train(dataset);
-        dataset.clear();
-      }
+      double loss = classifier.train(frame_buffer, label);
+      std::cout << "Loss: " << loss << std::endl;
+      ip_mgr.send({static_cast<uint8_t>(loss)});
     }
 
     classifier.save_model(output_filename);
@@ -108,6 +102,11 @@ int main(int argc, char** argv) {
     frame.insert(frame.begin(), prefix);
 
     ip_mgr.send(frame);
+
+    // receive the loss
+    std::optional<std::vector<uint8_t>> loss_buffer = ip_mgr.recv();
+    double loss = loss_buffer.has_value() ? static_cast<double>(loss_buffer.value().front()) : 0.0;
+    std::cout << "Loss: " << loss << std::endl;
   }
 
   return 0;

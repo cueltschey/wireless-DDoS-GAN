@@ -46,32 +46,27 @@ torch::Tensor ImageClassifier::preprocess(std::vector<uint8_t>& frame) {
 }
 
 // Train the model
-void ImageClassifier::train(std::vector<std::pair<std::vector<uint8_t>, int>>& dataset, double lr) {
+double ImageClassifier::train(std::vector<uint8_t> frame, int label, double lr) {
     torch::Device device(torch::cuda::is_available() ? torch::kCUDA : torch::kCPU);
     model_->to(device);
     torch::optim::SGD optimizer(model_->parameters(), lr);
 
     model_->train();
-    double total_loss = 0.0;
 
-    for (auto& [frame, label] : dataset) {
-        auto input_tensor = preprocess(frame).to(device);
-        size_t expected_size = img_width_ * img_height_ * 3;
-        if (frame.size() < expected_size) {
-          continue; // skip if frame too small
-        }
-        auto label_tensor = torch::tensor({label}, torch::kInt64).to(device);
-
-        optimizer.zero_grad();
-        auto output = model_->forward(input_tensor);
-        auto loss = torch::nll_loss(output, label_tensor);
-        total_loss += loss.item<double>();
-
-        loss.backward();
-        optimizer.step();
+    auto input_tensor = preprocess(frame).to(device);
+    size_t expected_size = img_width_ * img_height_ * 3;
+    if (frame.size() < expected_size) {
+      return 1.0;
     }
+    auto label_tensor = torch::tensor({label}, torch::kInt64).to(device);
 
-    std::cout << "Loss: " << total_loss << std::endl;
+    optimizer.zero_grad();
+    auto output = model_->forward(input_tensor);
+    auto loss = torch::nll_loss(output, label_tensor);
+
+    loss.backward();
+    optimizer.step();
+    return loss.item<double>();
 }
 
 // Classify a single frame

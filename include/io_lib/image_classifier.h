@@ -17,7 +17,7 @@ public:
     torch::Tensor preprocess(std::vector<uint8_t>& frame);
 
     // Train the model
-    void train(std::vector<std::pair<std::vector<uint8_t>, int>>& dataset, double lr = 0.01);
+    double train(std::vector<uint8_t> frame, int label, double lr = 0.01);
 
     // Classify a single frame
     bool classify(std::vector<uint8_t>& frame);
