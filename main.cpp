@@ -8,6 +8,7 @@
 #include "io_lib/input_buffer.h"
 #include "io_lib/ip_manager.h"
 #include "io_lib/image_classifier.h"
+#include "io_lib/gan.h"
 
 
 int main(int argc, char** argv) {
@@ -84,20 +85,20 @@ int main(int argc, char** argv) {
   std::mt19937 gen(rd());
   std::uniform_int_distribution<int> binary_dist(0, 1);
 
+  GAN generator;
+
   while (true) {
 
     std::vector<uint8_t> frame;
     int prefix = binary_dist(gen);
     if (prefix == 0) {
-      std::cout << "Sending random buffer" << std::endl;
-      frame = io_lib::generate_random_buffer(200000); // Example size: 10 bytes
+      frame = generator.generate();
     } else {
       std::optional<std::vector<uint8_t>> opt_frame = input.read_frame();
       if(!opt_frame.has_value()){
         break;
       }
       frame = opt_frame.value();
-      std::cout << "Sending image data: " << frame.size() << std::endl;
     }
     frame.insert(frame.begin(), prefix);
 
@@ -106,6 +107,7 @@ int main(int argc, char** argv) {
     // receive the loss
     std::optional<std::vector<uint8_t>> loss_buffer = ip_mgr.recv();
     double loss = loss_buffer.has_value() ? static_cast<double>(loss_buffer.value().front()) : 0.0;
+    generator.apply_loss(loss);
     std::cout << "Loss: " << loss << std::endl;
   }
 
