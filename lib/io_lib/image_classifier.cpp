@@ -38,9 +38,8 @@ torch::Tensor ImageClassifier::preprocess(std::vector<uint8_t>& frame) {
                       .div_(255.0);         // Normalize to [0, 1]
 
     // NOTE: to display images
-    // cv::imshow("Recv", image);
-    // cv::waitKey(0);
-    // cv::destroyWindow("Recv");
+    cv::imshow("Recv", image);
+    cv::waitKey(1);
 
     return tensor;
 }
@@ -56,6 +55,7 @@ double ImageClassifier::train(std::vector<uint8_t> frame, int label, double lr) 
     auto input_tensor = preprocess(frame).to(device);
     size_t expected_size = img_width_ * img_height_ * 3;
     if (frame.size() < expected_size) {
+      std::cout << "Frame size too small" << std::endl;
       return 1.0;
     }
     auto label_tensor = torch::tensor({label}, torch::kInt64).to(device);
@@ -74,7 +74,8 @@ bool ImageClassifier::classify(std::vector<uint8_t>& frame) {
     torch::NoGradGuard no_grad;
     model_->eval();
 
-    auto input_tensor = preprocess(frame).to(torch::kCUDA);
+    torch::Device device(torch::cuda::is_available() ? torch::kCUDA : torch::kCPU);
+    auto input_tensor = preprocess(frame).to(device);
     auto output = model_->forward(input_tensor);
     auto prediction = output.argmax(1).item<int>();
     return prediction == 1;

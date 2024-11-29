@@ -73,8 +73,11 @@ int main(int argc, char** argv) {
         label = 0;
       }
       double loss = classifier.train(frame_buffer, label);
-      std::cout << "Loss: " << loss << std::endl;
-      ip_mgr.send({static_cast<uint8_t>(loss)});
+
+      std::cout << "Classifier Loss: " << loss << std::endl;
+      std::vector<uint8_t> loss_buffer(sizeof(double));
+      std::memcpy(loss_buffer.data(), &loss, sizeof(double));
+      ip_mgr.send(loss_buffer);
     }
 
     classifier.save_model(output_filename);
@@ -93,12 +96,14 @@ int main(int argc, char** argv) {
     int prefix = binary_dist(gen);
     if (prefix == 0) {
       frame = generator.generate();
+      std::cout << "GAN: " << frame.size() << std::endl;
     } else {
       std::optional<std::vector<uint8_t>> opt_frame = input.read_frame();
       if(!opt_frame.has_value()){
         break;
       }
       frame = opt_frame.value();
+      std::cout << "File: " << frame.size() << std::endl;
     }
     frame.insert(frame.begin(), prefix);
 
@@ -106,9 +111,21 @@ int main(int argc, char** argv) {
 
     // receive the loss
     std::optional<std::vector<uint8_t>> loss_buffer = ip_mgr.recv();
-    double loss = loss_buffer.has_value() ? static_cast<double>(loss_buffer.value().front()) : 0.0;
-    generator.apply_loss(loss);
-    std::cout << "Loss: " << loss << std::endl;
+    if(!loss_buffer.has_value())
+      continue;
+
+    if (loss_buffer.value().size() != sizeof(double)) {
+      throw std::runtime_error("Buffer size does not match double size.");
+    }
+
+    double loss;
+    std::memcpy(&loss, loss_buffer.value().data(), sizeof(double));
+    loss = 1.0 - loss;
+
+    if(prefix == 0){
+      generator.apply_loss(loss);
+      std::cout << "Generator Loss: " << loss << std::endl;
+    }
   }
 
   return 0;
