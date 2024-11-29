@@ -7,14 +7,16 @@
 
 class GAN {
 public:
-    GAN(int noise_dim = 100, int img_width = 224, int img_height = 224);
+    GAN(int noise_dim = 256, int img_width = 224, int img_height = 224);
     std::vector<uint8_t> generate();
     double apply_loss(double loss_value);
 
 private:
     struct GeneratorImpl : torch::nn::Module {
         GeneratorImpl()
-            : conv1(torch::nn::ConvTranspose2dOptions(100, 512, 4)
+            : conv1(torch::nn::ConvTranspose2dOptions(256, 512, 4)
+                .stride(1)
+                .padding(0)
                 .bias(false)),
             batch_norm1(512),
             conv2(torch::nn::ConvTranspose2dOptions(512, 256, 4)

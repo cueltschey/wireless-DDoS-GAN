@@ -19,11 +19,6 @@ torch::Tensor ImageClassifier::preprocess(std::vector<uint8_t>& frame) {
 
     // If decoding fails, create an image from the raw buffer
     if (image.empty()) {
-        int required_size = img_height_ * img_width_ * 3;
-        if (frame.size() < required_size) {
-            throw std::runtime_error("Insufficient bytes for raw image creation");
-        }
-
         // Create a CV_8UC3 Mat from the buffer
         image = cv::Mat(img_height_, img_width_, CV_8UC3, frame.data()).clone();
     } else {
@@ -54,10 +49,10 @@ double ImageClassifier::train(std::vector<uint8_t> frame, int label, double lr) 
 
     auto input_tensor = preprocess(frame).to(device);
     size_t expected_size = img_width_ * img_height_ * 3;
-    if (frame.size() < expected_size) {
-      std::cout << "Frame size too small" << std::endl;
-      return 1.0;
-    }
+    //if (frame.size() < expected_size) {
+    //  std::cout << "Frame size too small" << std::endl;
+    //  return 1.0;
+    //}
     auto label_tensor = torch::tensor({label}, torch::kInt64).to(device);
 
     optimizer.zero_grad();
