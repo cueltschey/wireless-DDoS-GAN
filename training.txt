@@ -1,0 +1,122 @@
+
+[ 1/30][ 10/ 15] D_loss: 0.3891 | G_loss: 6.4900
+
+-> checkpoint 2
+Checkpoint!!
+[ 2/30][ 10/ 15] D_loss: 0.3844 | G_loss: 7.1964
+
+-> checkpoint 3
+Checkpoint!!
+[ 3/30][ 10/ 15] D_loss: 0.6066 | G_loss: 0.9359
+
+-> checkpoint 4
+Checkpoint!!
+[ 4/30][ 10/ 15] D_loss: 2.3057 | G_loss: 9.4173
+
+-> checkpoint 5
+Checkpoint!!
+[ 5/30][ 10/ 15] D_loss: 1.2782 | G_loss: 5.7487
+
+-> checkpoint 6
+Checkpoint!!
+[ 6/30][ 10/ 15] D_loss: 0.7775 | G_loss: 3.8565
+
+-> checkpoint 7
+Checkpoint!!
+[ 7/30][ 10/ 15] D_loss: 1.1731 | G_loss: 2.8752
+
+-> checkpoint 8
+Checkpoint!!
+[ 8/30][ 10/ 15] D_loss: 0.7079 | G_loss: 3.5301
+
+-> checkpoint 9
+Checkpoint!!
+[ 9/30][ 10/ 15] D_loss: 0.8413 | G_loss: 1.8457
+
+-> checkpoint 10
+Checkpoint!!
+[10/30][ 10/ 15] D_loss: 0.6928 | G_loss: 2.4317
+
+-> checkpoint 11
+Checkpoint!!
+[11/30][ 10/ 15] D_loss: 0.6384 | G_loss: 3.4567
+
+-> checkpoint 12
+Checkpoint!!
+[12/30][ 10/ 15] D_loss: 0.5501 | G_loss: 3.9383
+
+-> checkpoint 13
+Checkpoint!!
+[13/30][ 10/ 15] D_loss: 0.7560 | G_loss: 2.4775
+
+-> checkpoint 14
+Checkpoint!!
+[14/30][ 10/ 15] D_loss: 0.7642 | G_loss: 2.7070
+
+-> checkpoint 15
+Checkpoint!!
+[15/30][ 10/ 15] D_loss: 0.8427 | G_loss: 1.1110
+
+-> checkpoint 16
+Checkpoint!!
+[16/30][ 10/ 15] D_loss: 0.6598 | G_loss: 2.5568
+
+-> checkpoint 17
+Checkpoint!!
+[17/30][ 10/ 15] D_loss: 0.6984 | G_loss: 3.4980
+
+-> checkpoint 18
+Checkpoint!!
+[18/30][ 10/ 15] D_loss: 0.7000 | G_loss: 3.4441
+
+-> checkpoint 19
+Checkpoint!!
+[19/30][ 10/ 15] D_loss: 0.6307 | G_loss: 2.9436
+
+-> checkpoint 20
+Checkpoint!!
+[20/30][ 10/ 15] D_loss: 0.7552 | G_loss: 3.9746
+
+-> checkpoint 21
+Checkpoint!!
+[21/30][ 10/ 15] D_loss: 1.4322 | G_loss: 2.4024
+
+-> checkpoint 22
+Checkpoint!!
+[22/30][ 10/ 15] D_loss: 0.6737 | G_loss: 3.8295
+
+-> checkpoint 23
+Checkpoint!!
+[23/30][ 10/ 15] D_loss: 0.8072 | G_loss: 2.1686
+
+-> checkpoint 24
+Checkpoint!!
+[24/30][ 10/ 15] D_loss: 1.3209 | G_loss: 2.1998
+
+-> checkpoint 25
+Checkpoint!!
+[25/30][ 10/ 15] D_loss: 0.5663 | G_loss: 3.0991
+
+-> checkpoint 26
+Checkpoint!!
+[26/30][ 10/ 15] D_loss: 0.5596 | G_loss: 3.8523
+
+-> checkpoint 27
+Checkpoint!!
+[27/30][ 10/ 15] D_loss: 0.6466 | G_loss: 3.1406
+
+-> checkpoint 28
+Checkpoint!!
+[28/30][ 10/ 15] D_loss: 0.5547 | G_loss: 1.9511
+
+-> checkpoint 29
+Checkpoint!!
+[29/30][ 10/ 15] D_loss: 0.7027 | G_loss: 3.2536
+
+-> checkpoint 30
+Checkpoint!!
+[30/30][ 10/ 15] D_loss: 0.5178 | G_loss: 2.9527
+
+-> checkpoint 31
+Checkpoint!!
+Training complete!

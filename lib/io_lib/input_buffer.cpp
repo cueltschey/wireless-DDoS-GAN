@@ -47,9 +47,9 @@ std::optional<std::vector<uint8_t>> input_buffer::read_frame() {
   case VIDEO_FILE: {
     cv::Mat frame;
     if (!video_capture.read(frame)) {
-        return std::nullopt; // End of video
+        video_capture.set(cv::CAP_PROP_POS_FRAMES, 0);  // Reset the video to the first frame
+        video_capture.read(frame);
     }
-    // Convert frame to raw bytes
     cv::imencode(".jpg", frame, buffer);
     return buffer;
   }

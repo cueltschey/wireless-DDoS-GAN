@@ -28,6 +28,7 @@ endif ()
 
 # Libraries
 add_subdirectory(lib)
+add_subdirectory(gan)
 
 
 # Main

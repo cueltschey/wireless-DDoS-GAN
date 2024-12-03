@@ -1,33 +1,43 @@
 #include <opencv2/opencv.hpp>
 #include "io_lib/gan.h"
 
+// Learning Rate
+const double kLr = 2e-4;
+
+// Beta1
+const double kBeta1 = 0.5;
+
+// Beta2
+const double kBeta2 = 0.999;
+
+
 GAN::GAN(int noise_dim, int img_width, int img_height)
     : generator_(Generator()), 
-      generator_optimizer_(generator_->parameters(), torch::optim::AdamOptions(0.0002)),
+      generator_optimizer_(generator_->parameters(), torch::optim::AdamOptions(kLr).betas(std::make_tuple(kBeta1, kBeta2))),
       noise_dim_(noise_dim),
       img_width_(img_width),
       img_height_(img_height) {
+      torch::Device device(torch::cuda::is_available() ? torch::kCUDA : torch::kCPU);
+      generator_->to(device);
+      torch::load(generator_, "../generator-checkpoint.pt");
+      torch::load(generator_optimizer_, "../generator-optimizer-checkpoint.pt");
 }
 
 std::vector<uint8_t> GAN::generate() {
     torch::Device device(torch::cuda::is_available() ? torch::kCUDA : torch::kCPU);
-    generator_->to(device);
-    generator_->eval();
+    //generator_->eval();
 
-    // Generate random noise
-    auto noise = torch::randn({ 1, noise_dim_, 1, 1 }, device);
+    auto noise = torch::randn({ 64, noise_dim_, 1, 1 }, device);
 
-    // Forward pass through the generator
-    auto fake_image_tensor = generator_->forward(noise).to(device).to(torch::kUInt8);
+    // NOTE: noise works
+    //auto tensor_cpu = torch::randn({ 1, 3, 64, 64 }, device).to(device).to(torch::kUInt8).contiguous();
 
-    // Convert the tensor to std::vector<uint8_t>
-    //auto fake_image = fake_image_tensor.permute({0, 2, 3, 1}).contiguous(); // CHW -> HWC
-    std::vector<uint8_t> image_data(fake_image_tensor.data_ptr<uint8_t>(),
-                                    fake_image_tensor.data_ptr<uint8_t>() + fake_image_tensor.numel());
+    auto fake_image = generator_->forward(noise);
+    auto tensor_cpu = fake_image.to(device).to(torch::kUInt8).contiguous();
 
-    //cv::Mat image = cv::Mat(224, 224, CV_8UC3, image_data.data()).clone();
-    //cv::imshow("test", image);
-    //cv::waitKey(0);
+    std::vector<uint8_t> image_data(tensor_cpu.numel());
+    std::memcpy(image_data.data(), tensor_cpu.data_ptr<uint8_t>(), tensor_cpu.numel());
+
     return image_data;
 }
 
@@ -35,12 +45,15 @@ double GAN::apply_loss(double loss_value) {
     generator_->train();
 
     // Convert the provided double loss value into a scalar tensor
-    torch::Tensor loss = torch::tensor(loss_value, torch::requires_grad(true));
+    torch::Tensor loss_tensor = torch::tensor(loss_value, torch::requires_grad(true));
+    torch::Tensor fake_labels = torch::zeros(1, torch::kCPU).fill_(1);
+
+    torch::Tensor g_loss = torch::binary_cross_entropy(loss_tensor,fake_labels);
 
     // Backpropagation and optimization
-    generator_optimizer_.zero_grad();
-    loss.backward(); // Backpropagate the scalar tensor loss
+    //generator_->zero_grad();
+    g_loss.backward();
     generator_optimizer_.step();
 
-    return loss.item<double>();
+    return loss_tensor.item<double>();
 }
