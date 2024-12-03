@@ -74,7 +74,7 @@ int main(int argc, char** argv) {
       }
       double loss = classifier.train(frame_buffer, label);
 
-      std::cout << "Classifier Loss: " << 0.4 - loss << std::endl;
+      std::cout << "Classifier Loss: " << loss << std::endl;
       std::vector<uint8_t> loss_buffer(sizeof(double));
       std::memcpy(loss_buffer.data(), &loss, sizeof(double));
       ip_mgr.send(loss_buffer);
